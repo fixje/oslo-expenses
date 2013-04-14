@@ -195,9 +195,9 @@ function getWeekNumber(d) {
  *	TODO: add support for changing spreadsheet URL
  */
 function OsloExpenses(options) {
+	this.language = "en";
+	this.anchor = document.getElementById("osloExpenses");
 	if(options === undefined) {
-		this.language = "en";
-		this.anchor = document.getElementById("osloExpenses");
 		if(this.anchor === undefined) {
 			throw "Error, no anchor element found";
 		}
