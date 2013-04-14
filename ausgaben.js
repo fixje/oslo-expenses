@@ -1,3 +1,163 @@
+// TODO add categories: medical
+
+/*
+ * An object which stores our strings
+ * for different languages.
+ *
+ */
+var StringStore = (function() {
+	var language = "en";
+	var self = this;
+	var instance = null;
+	var _mappings = {
+		"expenses": {
+			"en": "expenses",
+			"de": "Ausgaben"
+		},
+		"week": {
+			"en":"week",
+			"de":"Woche"
+		},
+		"category": {
+			"en":"category",
+			"de":"Kategorie"
+		},
+		"food": {
+			"en":"food/drugs",
+			"de":"Lebensmittel/Drogerie"
+		},
+		"alcohol": {
+			"en":"alcohol",
+			"de":"Alkohol"
+		},
+		"furniture": {
+			"en":"furniture",
+			"de":"Einrichtung"
+		},
+		"transport": {
+			"en":"transport",
+			"de":"Transport"
+		},
+		"entrance": {
+			"en":"entrance fees",
+			"de":"Eintrittsgelder"
+		},
+		"misc": {
+			"en":"misc",
+			"de":"Sonstiges"
+		},
+		"clothes": {
+			"en":"clothes/supplies",
+			"de":"Klamotten/Ausrüstung"
+		},
+		"semiluxury": {
+			"en":"semiluxury food",
+			"de":"Genussmittel"
+		},
+		"total_expenses": {
+			"en":"total expenses",
+			"de":"Gesamtausgaben"
+		},
+		"show_list": {
+			"en":"show list",
+			"de":"Liste anzeigen"
+		},
+		"hide_list": {
+			"en":"hide list",
+			"de":"Liste verbergen"
+		},
+		"date": {
+			"en":"date",
+			"de":"Datum"
+		},
+		"description": {
+			"en":"description",
+			"de":"Beschreibung"
+		},
+		"category": {
+			"en":"category",
+			"de":"Kategorie"
+		},
+		"january": {
+			"en":"January",
+			"de":"Januar"
+		},
+		"february": {
+			"en":"February",
+			"de":"Februar"
+		},
+		"march": {
+			"en":"March",
+			"de":"März"
+		},
+		"april": {
+			"en":"April",
+			"de":"April"
+		},
+		"may": {
+			"en":"May",
+			"de":"Mai"
+		},
+		"june": {
+			"en":"June",
+			"de":"Juni"
+		},
+		"july": {
+			"en":"July",
+			"de":"Juli"
+		},
+		"august": {
+			"en":"August",
+			"de":"August"
+		},
+		"september": {
+			"en":"September",
+			"de":"September"
+		},
+		"october": {
+			"en":"October",
+			"de":"Oktober"
+		},
+		"november": {
+			"en":"November",
+			"de":"November"
+		},
+		"december": {
+			"en":"December",
+			"de":"Dezember"
+		}
+
+	};
+	
+	// return string
+	var s = function(str) {
+		return _mappings[str][language];
+	}
+
+	// return string with first letter as capital
+	var S = function(str) {
+		var r = s(str);
+		return r.charAt(0).toUpperCase() + r.slice(1);
+	}
+        function init(lang) {
+                language = lang;
+                return {
+                        s: s,
+			S: S
+                };
+        };
+
+        // singleton
+        return {
+                getInstance: function(language) {
+                        if(!instance) {
+                                return instance = init(language);
+                        }
+                        return instance;
+                }
+        };
+})();
+
 /* 
  * input: d - a Date object
  * returns [y,n] - y is the year and n the number of week
@@ -39,6 +199,7 @@ function OsloExpenses(options) {
 			this.language = options.language;
 		}
 	}
+	this.stringStore = StringStore.getInstance(this.language);
 	var self = this;
 	google.setOnLoadCallback(function() {
 		var query = new google.visualization.Query('http://spreadsheets.google.com/tq?key=0ArlwvcX1Fjp0dE9rLXhsSnpkSkZuTS1xWjdWUjN5d0E&range=A3:E10000&headers=1' ) ;
@@ -57,16 +218,16 @@ function OsloExpenses(options) {
  */ 
 OsloExpenses.prototype.stats2data = function(s) {
 	return google.visualization.arrayToDataTable([
-			['Kategorie', 'Ausgaben'],
-			['Lebensmittel/Drogerie', s.L],
+			[ this.stringStore.S("category"),  this.stringStore.S("expenses")],
+			[ this.stringStore.S("food"), s.L],
 			//['Miete', s.M],
-			['Genussmittel', s.G],
-			['Klamotten/Ausrüstung', s.K],
-			['Einrichtung', s.E],
-			['Sonstiges', s.S],
-			['Transport', s.T],
-			['Eintrittsgelder', s.F],
-			['Alkohol', s.A]
+			[ this.stringStore.S("semiluxury"), s.G],
+			[ this.stringStore.S("clothes"), s.K],
+			[ this.stringStore.S("furniture"), s.E],
+			[ this.stringStore.S("misc"), s.S],
+			[ this.stringStore.S("transport"), s.T],
+			[ this.stringStore.S("entrance"), s.F],
+			[ this.stringStore.S("alcohol"), s.A]
 			]);
 }
 
@@ -118,25 +279,26 @@ OsloExpenses.prototype.showStatData = function(anchor, stat_data, id_template, c
 	index_list.appendChild(index_elem);
 
 	var p_total = document.createElement("p");
-	p_total.textContent = "Gesamtausgaben: " + stat_data.total.toFixed(2) + "€";
+	p_total.textContent =  this.stringStore.S("total_expenses") + ": " + stat_data.total.toFixed(2) + "€";
 
 	var btn = document.createElement("button");
 	if(hide_table_default) {
-		btn.textContent = "Liste anzeigen";
+		btn.textContent =  this.stringStore.S("show_list");
 		list_container.style.visibility = "hidden";
 	} else {
-		btn.textContent = "Liste verbergen";
+		btn.textContent =  this.stringStore.S("hide_list");
 	}
+	var self = this;
 	btn.onclick = function() {
 		var list = document.getElementById("list-"+id_template);
 		if(list.style.visibility === "hidden") {
 			list.style.visibility = "visible";
 			list.style.height = "auto";
-			this.textContent = "Liste verbergen";
+			this.textContent =  self.stringStore.S("hide_list");
 		} else {
 			list.style.visibility = "hidden";
 			list.style.height = 0;
-			this.textContent = "Liste anzeigen";
+			this.textContent =  self.stringStore.S("show_list");
 		}
 	}
 
@@ -197,14 +359,14 @@ OsloExpenses.prototype.processData = function(response) {
 
 		// all stats in EUR
 		if (monthly_stats[date.getMonth()+1] === undefined) {
-			monthly_stats[date.getMonth()+1] = { total:0, M:0, L:0, G:0, K:0, E:0, A:0, S:0, T:0, F:0, coldata: new Array(["Datum", "Beschreibung", "NOK", "EUR", "Kat"]) };
+			monthly_stats[date.getMonth()+1] = { total:0, M:0, L:0, G:0, K:0, E:0, A:0, S:0, T:0, F:0, coldata: new Array([ this.stringStore.S("date"),  this.stringStore.S("description"), "NOK", "EUR", this.stringStore.S("category")]) };
 		}
 		monthly_stats[date.getMonth()+1].total += eur;
 		monthly_stats[date.getMonth()+1][kat] += eur;
 		monthly_stats[date.getMonth()+1].coldata.push([d, desc, nok, eur, kat]);
 
 		if (weekly_stats[getWeekNumber(date)[1]] === undefined) {
-			weekly_stats[getWeekNumber(date)[1]] = { total:0, M:0, L:0, G:0, K:0, E:0, A:0, S:0, T:0, F:0, coldata: new Array(["Datum", "Beschreibung", "NOK", "EUR", "Kat"]) };
+			weekly_stats[getWeekNumber(date)[1]] = { total:0, M:0, L:0, G:0, K:0, E:0, A:0, S:0, T:0, F:0, coldata: new Array([ this.stringStore.S("date"),  this.stringStore.S("description"), "NOK", "EUR", this.stringStore.S("category")]) };
 		}
 		weekly_stats[getWeekNumber(date)[1]].total += eur;
 		weekly_stats[getWeekNumber(date)[1]][kat] += eur;
@@ -213,7 +375,7 @@ OsloExpenses.prototype.processData = function(response) {
 	}
 
 
-	var mm = new Array("", "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
+	var mm = new Array("", this.stringStore.S("january"), this.stringStore.S("february"), this.stringStore.S("march"), this.stringStore.S("april"), this.stringStore.S("may"), this.stringStore.S("june"), this.stringStore.S("july"), this.stringStore.S("august"), this.stringStore.S("september"), this.stringStore.S("october"), this.stringStore.S("november"), this.stringStore.S("december"));
 	// produce monthly stats
 	for (month in monthly_stats) {
 		var s = monthly_stats[month];
