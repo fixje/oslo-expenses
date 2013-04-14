@@ -1,4 +1,7 @@
-
+/* 
+ * input: d - a Date object
+ * returns [y,n] - y is the year and n the number of week
+ */
 function getWeekNumber(d) {
 	// Copy date so don't modify original
 	d = new Date(d);
@@ -14,7 +17,45 @@ function getWeekNumber(d) {
 		return [d.getFullYear(), weekNo];
 }
 
-function stats2data(s) {
+
+/*
+ * options:
+ *	anchor: default "#osloExpenses"
+ *	language: ("de"|"en"), default "en"
+ *	TODO: add support for changing spreadsheet URL
+ */
+function OsloExpenses(options) {
+	if(options === undefined) {
+		this.language = "en";
+		this.anchor = document.getElementById("osloExpenses");
+		if(this.anchor === undefined) {
+			throw "Error, no anchor element found";
+		}
+	} else {
+		if(options.anchor !== undefined) {
+			this.anchor = options.anchor;
+		}
+		if(options.language !== undefined) {
+			this.language = options.language;
+		}
+	}
+	var self = this;
+	google.setOnLoadCallback(function() {
+		var query = new google.visualization.Query('http://spreadsheets.google.com/tq?key=0ArlwvcX1Fjp0dE9rLXhsSnpkSkZuTS1xWjdWUjN5d0E&range=A3:E10000&headers=1' ) ;
+		query.send(function(response) {
+			// this wrapper is necessary not to confuse the
+			// OsloExpense object!
+			self.processData(response) 
+		});
+	});
+}
+
+
+/*
+ * convert my self-created stat object to a Google
+ * DataTable.
+ */ 
+OsloExpenses.prototype.stats2data = function(s) {
 	return google.visualization.arrayToDataTable([
 			['Kategorie', 'Ausgaben'],
 			['Lebensmittel/Drogerie', s.L],
@@ -29,82 +70,12 @@ function stats2data(s) {
 			]);
 }
 
-// Load the Visualization API and the piechart package.
-google.load('visualization', '1.0', {'packages':['corechart', 'table']});
-
-// Set a callback to run when the Google Visualization API is loaded.
-google.setOnLoadCallback(getTableData);
-
-function getTableData() {
-	var query = new google.visualization.Query('http://spreadsheets.google.com/tq?key=0ArlwvcX1Fjp0dE9rLXhsSnpkSkZuTS1xWjdWUjN5d0E&range=A3:E10000&headers=1' ) ;
-	query.send(processData);
-}
-
-function processData(response) {
-	if (response.isError()) {
-		alert('Error in query: ' + response.getMessage() + ' ' + 
-				response.getDetailedMessage());
-		return;
-	}
-	var data = response.getDataTable();
-
-	// draw table for all rows
-	//var table_viz = new google.visualization.Table(document.getElementById("table_container"));
-	//table_viz.draw(data, null);
-
-	var monthly_stats = { };
-	var weekly_stats = {  };
-	// prepare stats for April
-	for(var i = 0; i < data.getNumberOfRows(); i++) {
-		var d = data.getValue(i, 0);
-		var date = new Date("20" + d[6] + "" + d[7] + "-" + d[3] + "" + d[4] + "-" + d[0] + "" + d[1]);
-		var desc = data.getValue(i, 1);
-		var nok = data.getValue(i, 2);
-		var eur = data.getValue(i, 3);
-		var kat = data.getValue(i, 4);
-
-		// ignore rent
-		if (kat == "M") {
-			continue;
-		}
-
-		// all stats in EUR
-		if (monthly_stats[date.getMonth()+1] === undefined) {
-			monthly_stats[date.getMonth()+1] = { total:0, M:0, L:0, G:0, K:0, E:0, A:0, S:0, T:0, F:0, coldata: new Array(["Datum", "Beschreibung", "NOK", "EUR", "Kat"]) };
-		}
-		monthly_stats[date.getMonth()+1].total += eur;
-		monthly_stats[date.getMonth()+1][kat] += eur;
-		monthly_stats[date.getMonth()+1].coldata.push([d, desc, nok, eur, kat]);
-
-		if (weekly_stats[getWeekNumber(date)[1]] === undefined) {
-			weekly_stats[getWeekNumber(date)[1]] = { total:0, M:0, L:0, G:0, K:0, E:0, A:0, S:0, T:0, F:0, coldata: new Array(["Datum", "Beschreibung", "NOK", "EUR", "Kat"]) };
-		}
-		weekly_stats[getWeekNumber(date)[1]].total += eur;
-		weekly_stats[getWeekNumber(date)[1]][kat] += eur;
-		weekly_stats[getWeekNumber(date)[1]].coldata.push([d, desc, nok, eur, kat]);
-
-	}
-
-
-	var mm = new Array("", "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
-	// produce monthly stats
-	for (month in monthly_stats) {
-		var s = monthly_stats[month];
-		showStatData(document.getElementById("monthly_content"), s, "stat-monthly"+month, mm[month], true, document.getElementById("monthly-index-list"));
-	}
-	//
-
-	// produce weekly stats
-	for (week in weekly_stats) {
-		var s = weekly_stats[week];
-		showStatData(document.getElementById("weekly_content"), s, "stat-weekly"+week, "KW " + week, false, document.getElementById("weekly-index-list"));
-	}
-	//
-}
-
-function showStatData(anchor, stat_data, id_template, caption, hide_table_default, index_list) {
+/*
+ * creates all visual elements
+ */ 
+OsloExpenses.prototype.showStatData = function(anchor, stat_data, id_template, caption, hide_table_default, index_list) {
 	if(hide_table_default === undefined) { hide_table_default = true; }
-	var ch_data = stats2data(stat_data);
+	var ch_data = this.stats2data(stat_data);
 	/* Layout:
 	 *
 	 * ------- anchor div --------------
@@ -187,5 +158,74 @@ function showStatData(anchor, stat_data, id_template, caption, hide_table_defaul
 		'height':350, is3D:true };
 	var chart = new google.visualization.PieChart(chart_container);
 	chart.draw(ch_data, options);
+}
+
+/*
+ * process data we received from Google Spreadsheet
+ * This will do the main part of our work like creating
+ * the statistics.
+ *
+ */ 
+OsloExpenses.prototype.processData = function(response) {
+	var self = this;
+	if (response.isError()) {
+		alert('Error in query: ' + response.getMessage() + ' ' + 
+				response.getDetailedMessage());
+		return;
+	} // TODO show this in a HTML dialog
+	var data = response.getDataTable();
+
+	// draw table for all rows
+	//var table_viz = new google.visualization.Table(document.getElementById("table_container"));
+	//table_viz.draw(data, null);
+
+	var monthly_stats = { };
+	var weekly_stats = {  };
+	// prepare stats for April
+	for(var i = 0; i < data.getNumberOfRows(); i++) {
+		var d = data.getValue(i, 0);
+		var date = new Date("20" + d[6] + "" + d[7] + "-" + d[3] + "" + d[4] + "-" + d[0] + "" + d[1]);
+		var desc = data.getValue(i, 1);
+		var nok = data.getValue(i, 2);
+		var eur = data.getValue(i, 3);
+		var kat = data.getValue(i, 4);
+
+		// ignore rent
+		if (kat == "M") {
+			continue;
+		}
+
+		// all stats in EUR
+		if (monthly_stats[date.getMonth()+1] === undefined) {
+			monthly_stats[date.getMonth()+1] = { total:0, M:0, L:0, G:0, K:0, E:0, A:0, S:0, T:0, F:0, coldata: new Array(["Datum", "Beschreibung", "NOK", "EUR", "Kat"]) };
+		}
+		monthly_stats[date.getMonth()+1].total += eur;
+		monthly_stats[date.getMonth()+1][kat] += eur;
+		monthly_stats[date.getMonth()+1].coldata.push([d, desc, nok, eur, kat]);
+
+		if (weekly_stats[getWeekNumber(date)[1]] === undefined) {
+			weekly_stats[getWeekNumber(date)[1]] = { total:0, M:0, L:0, G:0, K:0, E:0, A:0, S:0, T:0, F:0, coldata: new Array(["Datum", "Beschreibung", "NOK", "EUR", "Kat"]) };
+		}
+		weekly_stats[getWeekNumber(date)[1]].total += eur;
+		weekly_stats[getWeekNumber(date)[1]][kat] += eur;
+		weekly_stats[getWeekNumber(date)[1]].coldata.push([d, desc, nok, eur, kat]);
+
+	}
+
+
+	var mm = new Array("", "Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
+	// produce monthly stats
+	for (month in monthly_stats) {
+		var s = monthly_stats[month];
+		self.showStatData(document.getElementById("monthly_content"), s, "stat-monthly"+month, mm[month], true, document.getElementById("monthly-index-list"));
+	}
+	//
+
+	// produce weekly stats
+	for (week in weekly_stats) {
+		var s = weekly_stats[week];
+		self.showStatData(document.getElementById("weekly_content"), s, "stat-weekly"+week, "KW " + week, false, document.getElementById("weekly-index-list"));
+	}
+	//
 }
 
