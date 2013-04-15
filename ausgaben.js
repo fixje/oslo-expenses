@@ -410,10 +410,18 @@ OsloExpenses.prototype.showStatData = function(anchor, stat_data, id_template, c
 OsloExpenses.prototype.processData = function(response) {
 	var self = this;
 	if (response.isError()) {
-		alert('Error in query: ' + response.getMessage() + ' ' + 
-				response.getDetailedMessage());
+		var errDiv = document.createElement("div");
+		errDiv.className = "alert alert-error";
+		var ht = document.createElement("h4");
+		ht.textContent = "Error: " + response.getMessage();
+		var pt = document.createElement("p");
+		pt.innerHTML = response.getDetailedMessage();
+		errDiv.appendChild(ht);
+		errDiv.appendChild(pt);
+		this.anchor.appendChild(errDiv);
+		this.hideLoader();
 		return;
-	} // TODO show this in a HTML dialog
+	}
 	var data = response.getDataTable();
 
 	// draw table for all rows
@@ -473,7 +481,10 @@ OsloExpenses.prototype.processData = function(response) {
 	this.nodes.container.monthly.style.visibility = "visible";
 	this.nodes.container.weekly.style.visibility = "visible";
 	this.nodes.container.index.style.visibility = "visible";
+	this.hideLoader();
+}
+
+OsloExpenses.prototype.hideLoader = function() {
 	this.loader.style.visibility = "hidden";
 	this.loader.style.height = 0;
 }
-
