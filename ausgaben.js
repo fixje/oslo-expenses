@@ -190,18 +190,20 @@ function getWeekNumber(d) {
 
 /*
  * options:
- *	anchor: default "#osloExpenses"
+ *	anchor: default "#osloExpenses" will be created and appended to body
  *	language: ("de"|"en"), default "en"
  *	TODO: add support for changing spreadsheet URL
  */
 function OsloExpenses(options) {
 	this.language = "en";
 	this.anchor = document.getElementById("osloExpenses");
-	if(options === undefined) {
-		if(this.anchor === undefined) {
-			throw "Error, no anchor element found";
-		}
-	} else {
+	if(this.anchor == undefined) {
+		this.anchor = document.createElement("div");
+		this.anchor.setAttribute("id", "osloExpenses");
+		document.getElementsByTagName("body")[0].appendChild(this.anchor);
+	}
+
+	if(options !== undefined) {
 		if(options.anchor !== undefined) {
 			this.anchor = options.anchor;
 		}
