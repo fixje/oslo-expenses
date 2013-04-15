@@ -233,6 +233,7 @@ function OsloExpenses(options) {
 	this.nodes.container = {
 		monthly: document.createElement("div"),
 		weekly: document.createElement("div"),
+		index: document.createElement("div"),
 		monthly_index: document.createElement("div"),
 		weekly_index: document.createElement("div")
 	};
@@ -240,6 +241,7 @@ function OsloExpenses(options) {
 	this.nodes.container.weekly.setAttribute("id", "weekly_container");
 	this.nodes.container.monthly.style.visibility = "hidden";
 	this.nodes.container.weekly.style.visibility = "hidden";
+	this.nodes.container.index.style.visibility = "hidden";
 	
 	this.nodes.content = {
 		monthly: document.createElement("div"),
@@ -255,17 +257,23 @@ function OsloExpenses(options) {
 	this.nodes.container.monthly_index.appendChild(this.nodes.index.monthly);
 	this.nodes.container.weekly_index.appendChild(this.nodes.index.weekly);
 
+	var tp = document.createElement("h4");
+	tp.textContent = "Index";
+	this.nodes.container.index.className = "well";
+	this.nodes.container.index.appendChild(tp);
+	this.nodes.container.index.appendChild(this.nodes.container.monthly_index);
+	this.nodes.container.index.appendChild(this.nodes.container.weekly_index);
+	this.anchor.appendChild(this.nodes.container.index);
+
 	var pt = document.createElement("h2");
 	pt.textContent = this.stringStore.S("monthly_stats");
 	this.nodes.container.monthly.appendChild(pt);
-	this.nodes.container.monthly.appendChild(this.nodes.container.monthly_index);
 	this.nodes.container.monthly.appendChild(this.nodes.content.monthly);
 	this.anchor.appendChild(this.nodes.container.monthly);
 
 	var pt = document.createElement("h2");
 	pt.textContent = this.stringStore.S("weekly_stats");
 	this.nodes.container.weekly.appendChild(pt);
-	this.nodes.container.weekly.appendChild(this.nodes.container.weekly_index);
 	this.nodes.container.weekly.appendChild(this.nodes.content.weekly);
 	this.anchor.appendChild(this.nodes.container.weekly);
 
@@ -328,6 +336,7 @@ OsloExpenses.prototype.showStatData = function(anchor, stat_data, id_template, c
 	var n_div = document.createElement("div");
 	n_div.setAttribute("id", "container-"+id_template);
 	n_div.className = "stat-container";
+	n_div.className = "well";
 	var chart_container = document.createElement("div");
 	chart_container.setAttribute("id", "chart-cont-"+id_template);
 	var list_container = document.createElement("div");
@@ -461,6 +470,7 @@ OsloExpenses.prototype.processData = function(response) {
 	// hide loader and show content
 	this.nodes.container.monthly.style.visibility = "visible";
 	this.nodes.container.weekly.style.visibility = "visible";
+	this.nodes.container.index.style.visibility = "visible";
 	this.loader.style.visibility = "hidden";
 	this.loader.style.height = 0;
 }
