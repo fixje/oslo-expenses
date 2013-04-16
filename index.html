@@ -19,7 +19,8 @@
 		<script>
 			// Load the Visualization API and the piechart package.
 			google.load('visualization', '1.0', {'packages':['corechart', 'table']});
-			var oe = new OsloExpenses();
+			var spreadsheet = "URL to some google spreadsheet here";
+			var oe = new OsloExpenses(spreadsheet);
 		</script>
 	</body>
 </html>
