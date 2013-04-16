@@ -197,9 +197,12 @@ function getWeekNumber(d) {
  * options:
  *	anchor: default "#osloExpenses" will be created and appended to body
  *	language: ("de"|"en"), default "en"
- *	TODO: add support for changing spreadsheet URL
  */
-function OsloExpenses(options) {
+function OsloExpenses(datasource, options) {
+	if(datasource == null) {
+		throw "no proper data source";
+		return;
+	}
 	this.language = "en";
 	this.anchor = document.getElementById("osloExpenses");
 	if(this.anchor == undefined) {
@@ -299,7 +302,7 @@ function OsloExpenses(options) {
 	this.anchor.appendChild(this.nodes.container.weekly);
 
 	google.setOnLoadCallback(function() {
-		var query = new google.visualization.Query('http://spreadsheets.google.com/tq?key=0ArlwvcX1Fjp0dE9rLXhsSnpkSkZuTS1xWjdWUjN5d0E&range=A3:E10000&headers=1' ) ;
+		var query = new google.visualization.Query(datasource) ;
 		query.send(function(response) {
 			// this wrapper is necessary not to confuse the
 			// OsloExpense object!
