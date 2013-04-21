@@ -235,9 +235,6 @@ function OsloExpenses(datasource, options) {
 	}
 	this.anchor.appendChild(this.loader);
 
-
-
-
 	//set up nodes we need
 	this.nodes = {};
 	this.nodes.container = {
@@ -300,6 +297,21 @@ function OsloExpenses(datasource, options) {
 	this.nodes.container.weekly.appendChild(pt);
 	this.nodes.container.weekly.appendChild(this.nodes.content.weekly);
 	this.anchor.appendChild(this.nodes.container.weekly);
+
+	// set up preferences dropdown menu
+	var drop_container = document.createElement("div");
+	drop_container.className = "dropdown";
+	var drop_toggle = document.createElement("a");
+	drop_toggle.setAttribute("role", "button");
+	drop_toggle.setAttribute("data-toggle","dropdown");
+	drop_toggle.setAttribute("href", "#");
+	drop_toggle.innerHTML = "Properties";
+	var drop_menu = document.createElement("ul");
+	drop_menu.className = "dropdown-menu";
+	drop_menu.setAttribute("role", "menu");
+	drop_container.appendChild(drop_toggle);
+	drop_container.appendChild(drop_menu);
+	//this.nodes.container.index.appendChild(drop_container);
 
 	google.setOnLoadCallback(function() {
 		var query = new google.visualization.Query(datasource) ;
@@ -432,17 +444,31 @@ OsloExpenses.prototype.showStatData = function(anchor, stat_data, id_template, c
 OsloExpenses.prototype.processData = function(response) {
 	var self = this;
 	if (response.isError()) {
-		var errDiv = document.createElement("div");
-		errDiv.className = "alert alert-error";
-		var ht = document.createElement("h4");
-		ht.textContent = "Error: " + response.getMessage();
-		var pt = document.createElement("p");
-		pt.innerHTML = response.getDetailedMessage();
-		errDiv.appendChild(ht);
-		errDiv.appendChild(pt);
-		this.anchor.appendChild(errDiv);
-		this.hideLoader();
-		return;
+		// try to get local copy of the data
+		var cached_data = JSON.parse(localStorage.getItem("spreadsheet_data"));
+
+		if(cached_data == null) {
+			var errDiv = document.createElement("div");
+			errDiv.className = "alert alert-error";
+			var ht = document.createElement("h4");
+			ht.textContent = "Error: " + response.getMessage();
+			var pt = document.createElement("p");
+			pt.innerHTML = response.getDetailedMessage();
+			errDiv.appendChild(ht);
+			errDiv.appendChild(pt);
+			this.anchor.appendChild(errDiv);
+			this.hideLoader();
+			return;
+		} else {
+			var errDiv = document.createElement("div");
+			errDiv.className = "alert";
+			var pt = document.createElement("p");
+			pt.innerHTML = "There was an error retrieving the data. Showing cached copy";
+			errDiv.appendChild(pt);
+			this.anchor.appendChild(errDiv);
+			this.hideLoader();
+			response.getDataTable = function() { return new google.visualization.DataTable(cached_data); };
+		}
 	}
 	var data = response.getDataTable();
 
@@ -518,6 +544,9 @@ OsloExpenses.prototype.processData = function(response) {
 	this.nodes.container.index.style.visibility = "visible";
 	this.nodes.container.weekly_trend.style.visibility = "visible";
 	this.hideLoader();
+
+	// store data in cache
+	localStorage.setItem("spreadsheet_data", data.toJSON());
 }
 
 OsloExpenses.prototype.makeTrendChart = function(data) {
