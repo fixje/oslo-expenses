@@ -455,6 +455,10 @@ OsloExpenses.prototype.processData = function(response) {
 	// prepare stats
 	for(var i = 0; i < data.getNumberOfRows(); i++) {
 		var d = data.getValue(i, 0);
+		if(d == null) {
+			try { console.log("got null data row"); } catch(e) {}
+			continue;
+		}
 		var date = new Date("20" + d[6] + "" + d[7] + "-" + d[3] + "" + d[4] + "-" + d[0] + "" + d[1]);
 		var desc = data.getValue(i, 1);
 		var nok = data.getValue(i, 2);
