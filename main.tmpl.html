@@ -1,0 +1,84 @@
+<div id="expenses-container" style="display:none;">
+    <div id="insert-form" class="well" style="display:none;">
+        <form action="TODO" method="get" accept-charset="utf-8" class="form form-inline">
+            <input type="text" class="input-small" name="date" value="12.05.2013" id="date">
+            <input type="text" class="" name="description" value="" id="description" placeholder="Description" size="25">
+            <input type="text" name="amount" value="" id="amount" class="input-small" placeholder="Amount">
+            <select name="currency" id="currency" class="input-small" onchange="" size="1">
+                <option value="EUR">EUR</option>
+                <option value="NOK" selected>NOK</option>
+
+            </select>
+            <button type="submit" value="Add" class="btn">Add</button>
+        </form>
+    </div>
+
+    <!-- nav tabs -->
+    <div id="data-content">
+        <div id="navigation">
+            <ul class="nav nav-tabs" id="nav-tabs-list">
+                <li class="active">
+                <a id="nav-current-week" href="#cw" data-toggle="tab">Current Week</a>
+                </li>
+                <li>
+                <a id="nav-current-month" href="#cm" data-toggle="tab">Current Month</a>
+                </li>
+                <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Weeks <b class="caret"></b></a>
+                <ul class="dropdown-menu" id="nav-weeks">
+                    <!-- nav items here like <a href="#may" data-toggle="tab">May</a> -->
+                </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Months <b class="caret"></b></a>
+                    <ul class="dropdown-menu" id="nav-months">
+                        <!-- nav items here like <a href="#may" data-toggle="tab">May</a> -->
+                    </ul>
+                    </li>
+                </li>
+                <li>
+                <a id="nav-stats" href="#stats" data-toggle="tab">Overall Stats</a>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="tab-content">
+                <div id="stats" class="stat-container tab-pane">
+                    <div id="trend-container"></div>
+                </div>
+                <!-- stats to be inserted here, see item-stat-template -->
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script id="item-stat-template" type="x-jquery-tmpl">
+    <div id="{reference}" class="stat-container tab-pane" style="margin:15px;">
+        <h2>{title}</h2>
+        <div class="row">
+            <div class="span5">
+                <div id="stat-chart-container-{reference}" class="chart-container" style="margin-bottom:10px;"></div>
+                <div id="stat-stats-{reference}" class="item-stats"></div>
+            </div>
+            <div class="span1"><p>&nbsp;</p></div>
+            <div class="span6">
+                    <div id="stat-list-container-{reference}" class="list-container"></div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="error-template" type="x-jquery-tmpl">
+    <div class="alert alert-error">
+        <h4>Error: {title}</h4>
+        <p>{message}</p>
+    </div>
+</script>
+
+<script id="warning-template" type="x-jquery-tmpl">
+    <div class="alert alert-error">
+        <h4>{title}</h4>
+        <p>{message}</p>
+    </div>
+</script>
