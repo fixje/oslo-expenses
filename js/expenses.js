@@ -249,6 +249,7 @@ function OsloExpenses(datasource, options) {
         self.nodes.navWeeks = $("#nav-weeks")[0];
         self.nodes.tabContent = $("#tab-content")[0];
         self.nodes.trendContainer = $("#trend-container")[0];
+        self.nodes.weeklyMean = $("#weekly-mean")[0];
         self.nodes.mainContainer = $("#expenses-container")[0];
 
         google.setOnLoadCallback(function() {
@@ -398,10 +399,16 @@ OsloExpenses.prototype.processData = function(response) {
     //
 
     // produce weekly stats
+    this.weekly_mean = 0;
+    var n = 0;
     for (week in weekly_stats) {
         var s = weekly_stats[week];
+        this.weekly_mean += s.total;
+        n += 1;
         self.showStatData(this.nodes.navWeeks, s, "stat-weekly"+week, "KW " + week);
     }
+    this.weekly_mean = this.weekly_mean / n;
+    this.weekly_mean = this.weekly_mean.toFixed(2);
     //
 
     // produce trend
@@ -429,6 +436,7 @@ OsloExpenses.prototype.drawTrendChart = function() {
     var self = this;
     this.trendChart.draw(self.trendData, {curveType: "function", width: 700, height: 300,
         hAxis: {title: "KW"}, legend: {position: "none"}});
+    this.nodes.weeklyMean.innerHTML = "<b>Weekly Mean</b>: " + this.weekly_mean + " €";
 }
 
 OsloExpenses.prototype.hideLoader = function() {
